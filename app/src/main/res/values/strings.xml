@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">ZooDigitalAssistant</string>
+    <string name="app_name">Cyfrowy asystent ZOO</string>
+    <string name="app_name_ext">Cyfrowy asystent ZOO w Warszawie</string>
+    <string name="label_app_name_ext">Aplikacja dla pracy magisterskiej:</string>
+    <string name="author_name">inż. Marcin Prymek</string>
+    <string name="label_author_name">Autor:</string>
+    <string name="button_about">Informacje</string>
 </resources>
