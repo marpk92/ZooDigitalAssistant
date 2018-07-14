@@ -16,7 +16,8 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/button_about"/>
+        android:text="@string/button_about"
+        android:onClick="openAboutScreen"/>
 
 
 
