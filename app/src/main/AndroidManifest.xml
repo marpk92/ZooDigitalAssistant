@@ -20,6 +20,8 @@
             android:parentActivityName=".ui.MainActivity">
 
         </activity>
+        <activity android:name=".ui.DescriptionScreen"
+            android:parentActivityName=".ui.MainActivity"></activity>
     </application>
 
 </manifest>

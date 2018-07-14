@@ -21,4 +21,9 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void openDescScreen(View view) {
+        Intent intent = new Intent(this, DescriptionScreen.class);
+        startActivity(intent);
+    }
+
 }
