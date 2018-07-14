@@ -1,7 +1,9 @@
-package com.mgr.arapp.zoodigitalassistant;
+package com.mgr.arapp.zoodigitalassistant.ui;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+
+import com.mgr.arapp.zoodigitalassistant.R;
 
 /**
  * Created by Marcin on 14.07.2018.

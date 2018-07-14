@@ -1,9 +1,12 @@
-package com.mgr.arapp.zoodigitalassistant;
+package com.mgr.arapp.zoodigitalassistant.ui;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+
+import com.mgr.arapp.zoodigitalassistant.R;
+import com.mgr.arapp.zoodigitalassistant.ui.AboutActivity;
 
 public class MainActivity extends AppCompatActivity {
 
