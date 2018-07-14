@@ -2,17 +2,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:background="@color/white">
+    android:background="@color/white"
+    tools:context="com.mgr.arapp.zoodigitalassistant.ui.DescriptionScreen">
     <WebView
         android:id="@+id/desc_html_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"/>
     <Button
+        android:id="@+id/button_start_digital_assistant"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
         android:text="@string/start"/>
 
 </LinearLayout>

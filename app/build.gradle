@@ -1,7 +1,17 @@
 apply plugin: 'com.android.application'
 
+def VUFORIA_SDK_DIR = 'C:\\Development\\Android\\vuforia-sdk-android'
+def NATIVE_LIB_DIR = 'build/lib'
+def JAR_DIR = 'build/java/vuforia'
+
 android {
     compileSdkVersion 26
+
+    sourceSets.main {
+        jni.srcDirs = []
+        jniLibs.srcDirs = ["$VUFORIA_SDK_DIR/$NATIVE_LIB_DIR/", "lib/"]
+    }
+
     defaultConfig {
         applicationId "com.mgr.arapp.zoodigitalassistant"
         minSdkVersion 23
@@ -9,15 +19,38 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    archivesBaseName = rootProject.projectDir.getName()
+
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            ndk {
+                abiFilters "armeabi-v7a"
+            }
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+            ndk {
+                abiFilters "armeabi-v7a"
+            }
         }
     }
+}
+
+repositories {
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+}
+
+ext {
+    gdxVersion = '1.9.3'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.+'
+    compile files("$VUFORIA_SDK_DIR/$JAR_DIR/Vuforia.jar")
+    compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
 }
