@@ -1,5 +1,8 @@
 package com.mgr.arapp.zoodigitalassistant.ar.libgdx;
 
+import android.os.AsyncTask;
+import android.util.Log;
+
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -15,23 +18,41 @@ public class Display implements Screen {
     public Model model;
 
     private Renderer mRenderer;
+    private boolean loading = false;
+    public static AssetManager assets = new AssetManager();
+    private String name;
 
     public Display(VuforiaRenderer vuforiaRenderer) {
 
         mRenderer = new Renderer(vuforiaRenderer);
 
-        AssetManager assets = new AssetManager();
-        assets.load("jet.g3db", Model.class);
-        assets.finishLoading();
+//        AssetManager assets = new AssetManager();
+//        assets.load("jet.g3db", Model.class);
+//        assets.finishLoading();
+//
+//        model = assets.get("jet.g3db", Model.class);
+//        modelInstance = new ModelInstance(model);
 
-        model = assets.get("jet.g3db", Model.class);
+    }
 
-        modelInstance = new ModelInstance(model);
-
+    public void loadModel(String name){
+        Log.d("Diplay", "*************LOAD MODEL: " + name + " *****************");
+        loading = true;
+        this.name = name;
+        assets.clear();
+        assets.load(name, Model.class);
     }
 
     @Override
     public void render(float delta) {
+
+
+        if (loading && name != null && assets.update()) {
+            Log.d("Diplay", "*************NAME: " + name + " *****************");
+            model = assets.get(name, Model.class);
+            modelInstance = new ModelInstance(model);
+            loading = false;
+        }
         mRenderer.render(this, delta);
     }
 
@@ -64,5 +85,9 @@ public class Display implements Screen {
     @Override
     public void resume() {
 
+    }
+
+    public boolean isLoading() {
+        return loading;
     }
 }

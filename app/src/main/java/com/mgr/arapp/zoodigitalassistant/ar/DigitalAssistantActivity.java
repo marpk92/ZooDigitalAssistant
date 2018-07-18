@@ -51,8 +51,8 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.camera_overlay);
-        //startLoadingAnimation();
+//        setContentView(R.layout.camera_overlay);
+        startLoadingAnimation();
 
         session = new AppSession(this);
         session.initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -77,6 +77,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
         super.onResume();
 
         try {
+            showProgressIndicator(true);
             session.resumeAR();
         } catch (VuforiaException e) {
             Toast.makeText(this, "Unable to start augmented reality.", Toast.LENGTH_LONG).show();
@@ -234,6 +235,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+            showProgressIndicator(false);
         } else {
             Toast.makeText(this, "Unable to start augmented reality.", Toast.LENGTH_LONG).show();
             Log.e(LOGTAG, e.getString());
@@ -260,6 +262,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
     }
 
     private void startLoadingAnimation(){
+        Log.d(LOGTAG, "Start loadin anitmation");
         mUILayout = (RelativeLayout) View.inflate(this, R.layout.camera_overlay, null);
 
         mUILayout.setVisibility(View.VISIBLE);
@@ -271,5 +274,22 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
 
         addContentView(mUILayout, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    public void showProgressIndicator(boolean show)
+    {
+        if (loadingDialogHandler != null)
+        {
+            if (show)
+            {
+                loadingDialogHandler
+                        .sendEmptyMessage(LoadingDialogHandler.SHOW_LOADING_DIALOG);
+            }
+            else
+            {
+                loadingDialogHandler
+                        .sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
+            }
+        }
     }
 }

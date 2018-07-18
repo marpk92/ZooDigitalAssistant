@@ -1,10 +1,14 @@
 package com.mgr.arapp.zoodigitalassistant.ar.libgdx;
 
+import android.util.Log;
+
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -69,7 +73,9 @@ public class Renderer {
         modelBatch.begin(camera);
 
         gl.glDepthMask(true);
-        modelBatch.render(display.modelInstance, lights);
+        if (display.modelInstance != null) {
+            modelBatch.render(display.modelInstance, lights);
+        }
 
         modelBatch.end();
 
@@ -78,14 +84,15 @@ public class Renderer {
         gl.glDisable(GL20.GL_BLEND);
     }
 
-    private void setProjectionAndCamera(Display contentProvider, TrackableResult[] trackables, float filedOfView) {
+    private void setProjectionAndCamera(final Display contentProvider, TrackableResult[] trackables, float filedOfView) {
 
         ModelInstance model = contentProvider.modelInstance;
 
-        if (trackables != null && trackables.length > 0) {
+        if (trackables != null && trackables.length > 0 && model != null) {
             //transform all content
-            TrackableResult trackable = trackables[0];
 
+            TrackableResult trackable = trackables[0];
+            Log.d(LOG, "*********** name track: " + trackable.getTrackable().getName());
             Matrix44F modelViewMatrix = Tool.convertPose2GLMatrix(trackable.getPose());
             float[] raw = modelViewMatrix.getData();
 
@@ -119,18 +126,24 @@ public class Renderer {
             camera.direction.set(data[8], data[9], data[10]);
             //update filed of view
             camera.fieldOfView = filedOfView;
-
+        } else if (trackables != null && trackables.length > 0 && model == null){
+            if(!contentProvider.isLoading()) {
+                contentProvider.loadModel("jet.g3db");
+            }
+            camera.position.set(100, 100, 100);
+            camera.lookAt(1000,1000,1000);
         } else {
             camera.position.set(100, 100, 100);
             camera.lookAt(1000,1000,1000);
         }
-
-        model.transform.set(new Matrix4());
-        //the model is rotated
-        model.transform.rotate(1.0F, 0.0F, 0.0F, 90.0F);
-        model.transform.rotate(0.0F, 1.0F, 0.0F, 90.0F);
-        model.transform.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
-
+        if (model != null) {
+            model.transform.set(new Matrix4());
+            //the model is rotated
+            model.transform.rotate(1.0F, 0.0F, 0.0F, 90.0F);
+            model.transform.rotate(0.0F, 1.0F, 0.0F, 90.0F);
+            model.transform.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
+            camera.update();
+        }
         camera.update();
     }
 
