@@ -16,10 +16,13 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.SampleMath;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.VuforiaRenderer;
+import com.mgr.arapp.zoodigitalassistant.xmlparser.Animal;
 import com.vuforia.Matrix44F;
 import com.vuforia.Tool;
 import com.vuforia.TrackableResult;
 import com.vuforia.VIDEO_BACKGROUND_REFLECTION;
+
+import java.util.List;
 
 /**
  * Class responsible for rendering and scene transformations.

@@ -23,7 +23,7 @@ public class Engine extends Game {
 
     @Override
     public void create () {
-        Display mDisplay = new Display(vuforiaRenderer);
+        Display mDisplay = new Display(vuforiaRenderer, mActivity);
         setScreen(mDisplay);
         vuforiaRenderer.initRendering(mActivity);
         fps = new FPSLogger();

@@ -1,5 +1,6 @@
 package com.mgr.arapp.zoodigitalassistant.ar.libgdx;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -8,6 +9,15 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.VuforiaRenderer;
+import com.mgr.arapp.zoodigitalassistant.xmlparser.Animal;
+import com.mgr.arapp.zoodigitalassistant.xmlparser.AnimalXmlParser;
+
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Screen implementation responsible for model loading and calling renderer properly.
@@ -21,11 +31,13 @@ public class Display implements Screen {
     private boolean loading = false;
     public static AssetManager assets = new AssetManager();
     private String name;
+    private List<Animal> animalModels;
 
-    public Display(VuforiaRenderer vuforiaRenderer) {
+    public Display(VuforiaRenderer vuforiaRenderer, Activity activity) {
 
         mRenderer = new Renderer(vuforiaRenderer);
-
+        loadAnimals(activity);
+        Log.d("Display", animalModels.get(0).toString());
 //        AssetManager assets = new AssetManager();
 //        assets.load("jet.g3db", Model.class);
 //        assets.finishLoading();
@@ -33,6 +45,18 @@ public class Display implements Screen {
 //        model = assets.get("jet.g3db", Model.class);
 //        modelInstance = new ModelInstance(model);
 
+    }
+
+    private void loadAnimals(Activity activity){
+        try {
+            InputStream in = activity.getAssets().open("animals.xml");
+            AnimalXmlParser parser = new AnimalXmlParser();
+            animalModels = parser.parse(in);
+        } catch (IOException e){
+            animalModels = new ArrayList<>();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
     }
 
     public void loadModel(String name){
