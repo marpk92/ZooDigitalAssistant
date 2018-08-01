@@ -31,7 +31,7 @@ public class Display implements Screen {
     private boolean loading = false;
     public static AssetManager assets = new AssetManager();
     private String name;
-    private List<Animal> animalModels;
+    public List<Animal> animalModels;
 
     public Display(VuforiaRenderer vuforiaRenderer, Activity activity) {
 

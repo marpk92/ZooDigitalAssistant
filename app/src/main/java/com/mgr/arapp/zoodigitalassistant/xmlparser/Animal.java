@@ -6,8 +6,8 @@ package com.mgr.arapp.zoodigitalassistant.xmlparser;
 
 public class Animal {
 
-    private String model;
-    private String marker;
+    public String model;
+    public String marker;
 
     public Animal(String model, String marker) {
         this.model = model;

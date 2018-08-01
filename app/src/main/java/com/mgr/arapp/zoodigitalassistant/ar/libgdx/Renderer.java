@@ -37,6 +37,7 @@ public class Renderer {
     private Environment lights;
     private ModelBatch modelBatch;
     private VuforiaRenderer vuforiaRenderer;
+    private String currentModelName;
 
     public Renderer(VuforiaRenderer arRenderer) {
 
@@ -90,8 +91,18 @@ public class Renderer {
     private void setProjectionAndCamera(final Display contentProvider, TrackableResult[] trackables, float filedOfView) {
 
         ModelInstance model = contentProvider.modelInstance;
-
-        if (trackables != null && trackables.length > 0 && model != null) {
+        String trackableName;
+        String modelName = "";
+        if (trackables != null && trackables.length > 0){
+            TrackableResult trackable = trackables[0];
+            trackableName = trackable.getTrackable().getName();
+            for (Animal animal : contentProvider.animalModels){
+                if (animal.marker.equals(trackableName)){
+                    modelName = animal.model;
+                }
+            }
+        }
+        if (trackables != null && trackables.length > 0 && model != null && currentModelName != null && currentModelName.equals(modelName)) {
             //transform all content
 
             TrackableResult trackable = trackables[0];
@@ -130,8 +141,10 @@ public class Renderer {
             //update filed of view
             camera.fieldOfView = filedOfView;
         } else if (trackables != null && trackables.length > 0 && model == null){
+
             if(!contentProvider.isLoading()) {
-                contentProvider.loadModel("jet.g3db");
+                contentProvider.loadModel(modelName);
+                currentModelName = modelName;
             }
             camera.position.set(100, 100, 100);
             camera.lookAt(1000,1000,1000);
