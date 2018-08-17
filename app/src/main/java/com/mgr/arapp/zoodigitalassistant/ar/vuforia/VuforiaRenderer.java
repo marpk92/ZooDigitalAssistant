@@ -8,6 +8,7 @@ import com.vuforia.CameraCalibration;
 import com.vuforia.CameraDevice;
 import com.vuforia.Device;
 import com.vuforia.Renderer;
+import com.vuforia.RenderingPrimitives;
 import com.vuforia.State;
 import com.vuforia.TrackableResult;
 import com.vuforia.TrackerManager;
@@ -33,6 +34,7 @@ public class VuforiaRenderer {
 
     public float fieldOfViewRadians;
 
+    public RenderingPrimitives mRenderingPrimitives = null;
 
     public VuforiaRenderer(AppSession session)
     {
@@ -103,6 +105,10 @@ public class VuforiaRenderer {
         mRenderer.end();
 
         return results;
+    }
+
+    public synchronized void updateRenderingPrimitives(){
+        mRenderingPrimitives = Device.getInstance().getRenderingPrimitives();
     }
 
 }

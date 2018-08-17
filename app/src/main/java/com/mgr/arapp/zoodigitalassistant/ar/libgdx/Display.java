@@ -9,6 +9,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.VuforiaRenderer;
+import com.mgr.arapp.zoodigitalassistant.ar.vuforia.videoPlayback.VideoPlaybackRenderer;
 import com.mgr.arapp.zoodigitalassistant.xmlparser.Animal;
 import com.mgr.arapp.zoodigitalassistant.xmlparser.AnimalXmlParser;
 
@@ -32,11 +33,12 @@ public class Display implements Screen {
     public static AssetManager assets = new AssetManager();
     private String name;
     public List<Animal> animalModels;
+    public VideoPlaybackRenderer videoPlaybackRenderer;
 
-    public Display(VuforiaRenderer vuforiaRenderer, Activity activity) {
-
+    public Display(VuforiaRenderer vuforiaRenderer, Activity activity, List<Animal> animalModels, VideoPlaybackRenderer videoRenderer) {
+        videoPlaybackRenderer = videoRenderer;
         mRenderer = new Renderer(vuforiaRenderer);
-        loadAnimals(activity);
+        this.animalModels = animalModels;
         Log.d("Display", animalModels.get(0).toString());
 //        AssetManager assets = new AssetManager();
 //        assets.load("jet.g3db", Model.class);
@@ -47,17 +49,7 @@ public class Display implements Screen {
 
     }
 
-    private void loadAnimals(Activity activity){
-        try {
-            InputStream in = activity.getAssets().open("animals.xml");
-            AnimalXmlParser parser = new AnimalXmlParser();
-            animalModels = parser.parse(in);
-        } catch (IOException e){
-            animalModels = new ArrayList<>();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     public void loadModel(String name){
         Log.d("Diplay", "*************LOAD MODEL: " + name + " *****************");
@@ -69,15 +61,14 @@ public class Display implements Screen {
 
     @Override
     public void render(float delta) {
-
-
-        if (loading && name != null && assets.update()) {
-            Log.d("Diplay", "*************NAME: " + name + " *****************");
-            model = assets.get(name, Model.class);
-            modelInstance = new ModelInstance(model);
-            loading = false;
-        }
-        mRenderer.render(this, delta);
+//        if (loading && name != null && assets.update()) {
+//            Log.d("Diplay", "*************NAME: " + name + " *****************");
+//            model = assets.get(name, Model.class);
+//            modelInstance = new ModelInstance(model);
+//            loading = false;
+//        }
+//        mRenderer.render(this, delta);
+        videoPlaybackRenderer.onDrawFrame(this);
     }
 
     @Override

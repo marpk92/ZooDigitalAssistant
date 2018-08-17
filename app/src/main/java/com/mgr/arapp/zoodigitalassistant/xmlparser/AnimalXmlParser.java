@@ -55,6 +55,7 @@ public class AnimalXmlParser {
         parser.require(XmlPullParser.START_TAG, ns, "animal");
         String model = null;
         String marker = null;
+        String videoUrl = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -64,11 +65,13 @@ public class AnimalXmlParser {
                 model = readModel(parser);
             } else if (name.equals("marker")) {
                 marker = readMarker(parser);
+            } else if (name.equals("videoUrl")){
+                videoUrl = readVideoUrl(parser);
             } else {
                 skip(parser);
             }
         }
-        return new Animal(model, marker);
+        return new Animal(model, marker, videoUrl);
     }
 
     private String readModel(XmlPullParser parser) throws IOException, XmlPullParserException {
@@ -81,6 +84,13 @@ public class AnimalXmlParser {
         parser.require(XmlPullParser.START_TAG, ns, "marker");
         String model = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "marker");
+        return model;
+    }
+
+    private String readVideoUrl(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "videoUrl");
+        String model = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "videoUrl");
         return model;
     }
 

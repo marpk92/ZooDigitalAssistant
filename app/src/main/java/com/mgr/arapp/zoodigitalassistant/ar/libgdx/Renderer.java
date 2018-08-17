@@ -1,5 +1,6 @@
 package com.mgr.arapp.zoodigitalassistant.ar.libgdx;
 
+import android.opengl.Matrix;
 import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
@@ -16,11 +17,17 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.SampleMath;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.VuforiaRenderer;
+import com.mgr.arapp.zoodigitalassistant.ar.vuforia.videoPlayback.VideoPlaybackRenderer;
 import com.mgr.arapp.zoodigitalassistant.xmlparser.Animal;
+import com.vuforia.COORDINATE_SYSTEM_TYPE;
+import com.vuforia.Device;
+import com.vuforia.Matrix34F;
 import com.vuforia.Matrix44F;
+import com.vuforia.RenderingPrimitives;
 import com.vuforia.Tool;
 import com.vuforia.TrackableResult;
 import com.vuforia.VIDEO_BACKGROUND_REFLECTION;
+import com.vuforia.ViewList;
 
 import java.util.List;
 
@@ -38,6 +45,8 @@ public class Renderer {
     private ModelBatch modelBatch;
     private VuforiaRenderer vuforiaRenderer;
     private String currentModelName;
+    private VideoPlaybackRenderer videoPlaybackRenderer;
+    public List<Animal> animalModels;
 
     public Renderer(VuforiaRenderer arRenderer) {
 
@@ -68,7 +77,11 @@ public class Renderer {
             //render camera background and find targets
             results = vuforiaRenderer.processFrame();
         }
+        renderModel3D(gl, display, results);
 
+    }
+
+    private void renderModel3D(GL20 gl, Display display, TrackableResult[] results){
         gl.glEnable(GL20.GL_DEPTH_TEST);
         gl.glEnable(GL20.GL_CULL_FACE);
 
@@ -86,6 +99,30 @@ public class Renderer {
         gl.glDisable(GL20.GL_CULL_FACE);
         gl.glDisable(GL20.GL_DEPTH_TEST);
         gl.glDisable(GL20.GL_BLEND);
+    }
+
+    private void renderVideo(GL20 gl, Display display, TrackableResult[] results){
+        ViewList viewList = vuforiaRenderer.mRenderingPrimitives.getRenderingViews();
+
+        if(viewList != null && viewList.getNumViews() > 0) {
+            Matrix34F projMatrix = vuforiaRenderer.mRenderingPrimitives.getProjectionMatrix(0,
+                    COORDINATE_SYSTEM_TYPE.COORDINATE_SYSTEM_CAMERA);
+
+            float rawProjectionMatrixGL[] = Tool.convertPerspectiveProjection2GLMatrix(
+                    projMatrix,
+                    0.01f,
+                    5f)
+                    .getData();
+
+            float eyeAdjustmentGL[] = Tool.convert2GLMatrix(vuforiaRenderer.mRenderingPrimitives
+                    .getEyeDisplayAdjustmentMatrix(0)).getData();
+
+            float projectionMatrix[] = new float[16];
+            Matrix.multiplyMM(projectionMatrix, 0, rawProjectionMatrixGL, 0, eyeAdjustmentGL, 0);
+
+            videoPlaybackRenderer.renderFrame(results, projectionMatrix);
+        }
+
     }
 
     private void setProjectionAndCamera(final Display contentProvider, TrackableResult[] trackables, float filedOfView) {

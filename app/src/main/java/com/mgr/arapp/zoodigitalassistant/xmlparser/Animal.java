@@ -8,10 +8,12 @@ public class Animal {
 
     public String model;
     public String marker;
+    public String videoUrl;
 
-    public Animal(String model, String marker) {
+    public Animal(String model, String marker, String videoUrl) {
         this.model = model;
         this.marker = marker;
+        this.videoUrl = videoUrl;
     }
 
     @Override

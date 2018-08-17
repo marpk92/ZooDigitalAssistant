@@ -5,7 +5,10 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -20,7 +23,11 @@ import com.mgr.arapp.zoodigitalassistant.ar.vuforia.AppSession;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.SessionControl;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.VuforiaException;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.VuforiaRenderer;
+import com.mgr.arapp.zoodigitalassistant.ar.vuforia.utils.Texture;
+import com.mgr.arapp.zoodigitalassistant.ar.vuforia.videoPlayback.VideoPlaybackRenderer;
+import com.mgr.arapp.zoodigitalassistant.ar.vuforia.videoPlayback.VideoPlayerHelper;
 import com.mgr.arapp.zoodigitalassistant.utils.LoadingDialogHandler;
+import com.mgr.arapp.zoodigitalassistant.xmlparser.Animal;
 import com.vuforia.CameraDevice;
 import com.vuforia.DataSet;
 import com.vuforia.HINT;
@@ -30,6 +37,9 @@ import com.vuforia.State;
 import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Marcin on 14.07.2018.
@@ -43,8 +53,14 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
 
     private DataSet posterDataSet;
     private Engine mEngine;
+    private boolean mPlayFullscreenVideo = false;
 
     VuforiaRenderer mRenderer;
+
+    Map<String, Texture> mTextures  = new HashMap<>();
+
+    private GestureDetector mGestureDetector = null;
+    private GestureDetector.SimpleOnGestureListener mSimpleListener = null;
 
     LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(this);
     private RelativeLayout mUILayout;
@@ -65,11 +81,126 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
         config.useAccelerometer = false;
         config.useCompass = false;
 
+        mSimpleListener = new GestureDetector.SimpleOnGestureListener();
+        mGestureDetector = new GestureDetector(getApplicationContext(),
+                mSimpleListener);
+
+        mGestureDetector.setOnDoubleTapListener(new GestureDetector.OnDoubleTapListener()
+        {
+            public boolean onDoubleTap(MotionEvent e)
+            {
+                // We do not react to this event
+                return false;
+            }
+
+
+            public boolean onDoubleTapEvent(MotionEvent e)
+            {
+                // We do not react to this event
+                return false;
+            }
+
+
+            // Handle the single tap
+            public boolean onSingleTapConfirmed(MotionEvent e)
+            {
+                final Handler autofocusHandler = new Handler();
+                // Do not react if the StartupScreen is being displayed
+                for (Animal animal : mEngine.animalModels)
+                {
+                    // Verify that the tap happened inside the target
+                    if (mEngine.videoPlaybackRenderer!= null && mEngine.videoPlaybackRenderer.isTapOnScreenInsideTarget(animal.marker, e.getX(),
+                            e.getY()))
+                    {
+                        VideoPlayerHelper mVideoPlayerHelper = mEngine.videoPlaybackRenderer.mVideoPlayerHelper.get(animal.marker);
+                        // Check if it is playable on texture
+                        if (mEngine.videoPlaybackRenderer.mVideoPlayerHelper.get(animal.marker).isPlayableOnTexture())
+                        {
+                            // We can play only if the movie was paused, ready
+                            // or stopped
+
+                            if ((mVideoPlayerHelper.getStatus() == VideoPlayerHelper.MEDIA_STATE.PAUSED)
+                                    || (mVideoPlayerHelper.getStatus() == VideoPlayerHelper.MEDIA_STATE.READY)
+                                    || (mVideoPlayerHelper.getStatus() == VideoPlayerHelper.MEDIA_STATE.STOPPED)
+                                    || (mVideoPlayerHelper.getStatus() == VideoPlayerHelper.MEDIA_STATE.REACHED_END))
+                            {
+                                // Pause all other media
+                                pauseAll(animal.marker);
+
+                                // If it has reached the end then rewind
+                                if ((mVideoPlayerHelper.getStatus() == VideoPlayerHelper.MEDIA_STATE.REACHED_END))
+                                    mEngine.videoPlaybackRenderer.mSeekPosition.put(animal.marker, 0);
+
+                                mVideoPlayerHelper.play(mPlayFullscreenVideo,
+                                        mEngine.videoPlaybackRenderer.mSeekPosition.get(animal.marker));
+                                mEngine.videoPlaybackRenderer.mSeekPosition.put(animal.marker, VideoPlayerHelper.CURRENT_POSITION);
+                            } else if (mVideoPlayerHelper.getStatus() == VideoPlayerHelper.MEDIA_STATE.PLAYING)
+                            {
+                                // If it is playing then we pause it
+                                mVideoPlayerHelper.pause();
+                            }
+                        } else if (mVideoPlayerHelper.isPlayableFullscreen())
+                        {
+                            // If it isn't playable on texture
+                            // Either because it wasn't requested or because it
+                            // isn't supported then request playback fullscreen.
+                            mVideoPlayerHelper.play(true,
+                                    VideoPlayerHelper.CURRENT_POSITION);
+                        }
+
+                        // Even though multiple videos can be loaded only one
+                        // can be playing at any point in time. This break
+                        // prevents that, say, overlapping videos trigger
+                        // simultaneously playback.
+                        break;
+                    }
+                    else
+                    {
+                        boolean result = CameraDevice.getInstance().setFocusMode(
+                                CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO);
+                        if (!result)
+                            Log.e("SingleTapConfirmed", "Unable to trigger focus");
+
+                        // Generates a Handler to trigger continuous auto-focus
+                        // after 1 second
+                        autofocusHandler.postDelayed(new Runnable()
+                        {
+                            public void run()
+                            {
+                                final boolean autofocusResult = CameraDevice.getInstance().setFocusMode(
+                                        CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO);
+
+                                if (!autofocusResult)
+                                    Log.e("SingleTapConfirmed", "Unable to re-enable continuous auto-focus");
+                            }
+                        }, 1000L);
+                    }
+                }
+
+                return true;
+            }
+        });
+
         mEngine = new Engine(mRenderer, this);
         View glView = initializeForView(mEngine);
 
         container.addView(glView);
 
+    }
+
+    private void pauseAll(String except)
+    {
+        for (Animal animal : mEngine.animalModels)
+        {
+            VideoPlayerHelper mVideoPlayerHelper = mEngine.videoPlaybackRenderer.mVideoPlayerHelper.get(animal.marker);
+            if (animal.marker.equals(except))
+            {
+                if (mVideoPlayerHelper.isPlayableOnTexture())
+                {
+                    mVideoPlayerHelper.pause();
+                }
+            }
+        }
     }
 
     @Override
@@ -101,6 +232,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
     public void onConfigurationChanged(Configuration config) {
         super.onConfigurationChanged(config);
         session.onConfigurationChanged();
+        mRenderer.updateRenderingPrimitives();
     }
 
     @Override
@@ -291,5 +423,18 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
                         .sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
             }
         }
+    }
+
+    private void loadTextures()
+    {
+        mTextures.put(VideoPlaybackRenderer.DEFAULT_TEXTURE, Texture.loadTextureFromApk(
+                "VideoPlayback/VuforiaSizzleReel_1.png", getAssets()));
+
+        mTextures.put(VideoPlaybackRenderer.BUTTON_PLAY, Texture.loadTextureFromApk("VideoPlayback/play.png",
+                getAssets()));
+        mTextures.put(VideoPlaybackRenderer.BUTTON_BUSY, Texture.loadTextureFromApk("VideoPlayback/busy.png",
+                getAssets()));
+        mTextures.put(VideoPlaybackRenderer.BUTTON_STOP, Texture.loadTextureFromApk("VideoPlayback/error.png",
+                getAssets()));
     }
 }
