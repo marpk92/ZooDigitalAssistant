@@ -51,11 +51,11 @@ public class Engine extends Game {
         this.loadAnimals(mActivity);
 
         videoPlaybackRenderer = new VideoPlaybackRenderer(animalModels,  vuforiaRenderer, mActivity);
-        videoPlaybackRenderer.initRendering();
         Display mDisplay = new Display(vuforiaRenderer, mActivity, animalModels, videoPlaybackRenderer);
         setScreen(mDisplay);
         vuforiaRenderer.initRendering(mActivity);
         vuforiaRenderer.updateRenderingPrimitives();
+        videoPlaybackRenderer.initRendering();
 
         fps = new FPSLogger();
     }

@@ -73,7 +73,7 @@ public class VuforiaRenderer {
 
 
     // The render function.
-    public TrackableResult[] processFrame()
+    public TrackableResult[] processFrame(boolean end)
     {
         if (!mIsActive)
             return null;
@@ -102,13 +102,22 @@ public class VuforiaRenderer {
             fieldOfViewRadians = (float) (2 * Math.atan(0.5f * size.getData()[0] / focalLength.getData()[0]));
         }
 
-        mRenderer.end();
+        if(end) mRenderer.end();
 
         return results;
     }
 
+    public TrackableResult[] processFrame(){
+        return processFrame(true);
+    }
+
+
     public synchronized void updateRenderingPrimitives(){
         mRenderingPrimitives = Device.getInstance().getRenderingPrimitives();
+    }
+
+    public void endRenderer(){
+        mRenderer.end();
     }
 
 }

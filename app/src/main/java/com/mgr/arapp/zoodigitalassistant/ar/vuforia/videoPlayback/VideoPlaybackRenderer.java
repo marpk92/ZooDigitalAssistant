@@ -3,9 +3,11 @@ package com.mgr.arapp.zoodigitalassistant.ar.vuforia.videoPlayback;
 import android.app.Activity;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -15,16 +17,21 @@ import com.mgr.arapp.zoodigitalassistant.ar.vuforia.SampleMath;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.VuforiaRenderer;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.utils.SampleUtils;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.utils.Texture;
+import com.mgr.arapp.zoodigitalassistant.utils.examples.Triangle;
 import com.mgr.arapp.zoodigitalassistant.xmlparser.Animal;
 import com.vuforia.COORDINATE_SYSTEM_TYPE;
 import com.vuforia.ImageTarget;
 import com.vuforia.Matrix34F;
 import com.vuforia.Matrix44F;
+import com.vuforia.Renderer;
 import com.vuforia.Tool;
 import com.vuforia.TrackableResult;
+import com.vuforia.VIDEO_BACKGROUND_REFLECTION;
 import com.vuforia.Vec2F;
 import com.vuforia.Vec3F;
+import com.vuforia.Vec4I;
 import com.vuforia.ViewList;
+import com.vuforia.Vuforia;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -35,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
@@ -109,6 +117,10 @@ public class VideoPlaybackRenderer {
     Activity mActivity;
     private VuforiaRenderer vuforiaRenderer;
 
+    // todo testowy trojkat
+    private int triangleVertexShader;
+    private int triangleFragementShader;
+    private Triangle mTriangle;
 
     public VideoPlaybackRenderer(List<Animal> animalList, VuforiaRenderer arRenderer, Activity activity) {
         this.vuforiaRenderer = arRenderer;
@@ -127,6 +139,8 @@ public class VideoPlaybackRenderer {
 
             videoQuadTextureCoordsTransformed.put(animal.marker, defaultQuadTextCoord);
             Vec3F tempTarDim = new Vec3F();
+            float[] tempData = { 0f, 0f, 0f };
+            tempTarDim.setData(tempData);
             targetPositiveDimensions.put(animal.marker, tempTarDim);
             mVideoPlayerHelper.put(animal.marker, null);
             mMovieName.put(animal.marker, animal.videoUrl);
@@ -136,8 +150,9 @@ public class VideoPlaybackRenderer {
             mLostTrackingSince.put(animal.marker, -1l);
             mLoadRequested.put(animal.marker, true);
 
-            targetPositiveDimensions.put(animal.marker, new Vec3F());
             modelViewMatrix.put(animal.marker, new Matrix44F());
+
+            mTexCoordTransformationMatrix.put(animal.marker, new float[16]);
 
             VideoPlayerHelper playerHelper = new VideoPlayerHelper();
             playerHelper.init();
@@ -197,6 +212,7 @@ public class VideoPlaybackRenderer {
     }
 
     public void initRendering(){
+
         for (String keyTexture : mTextures.keySet())
         {
             Texture t = mTextures.get(keyTexture);
@@ -229,7 +245,6 @@ public class VideoPlaybackRenderer {
             videoPlaybackTextureIDMap.put(modelName, textureId);
             textureId++;
         }
-        //todo dokonczyc
         videoPlaybackShaderID = SampleUtils.createProgramFromShaderSrc(
                 VideoPlaybackShaders.VIDEO_PLAYBACK_VERTEX_SHADER,
                 VideoPlaybackShaders.VIDEO_PLAYBACK_FRAGMENT_SHADER);
@@ -263,44 +278,76 @@ public class VideoPlaybackRenderer {
         quadTexCoords = fillBuffer(quadTexCoordsArray);
         quadIndices = fillBuffer(quadIndicesArray);
         quadNormals = fillBuffer(quadNormalsArray);
+
+        triangleFragementShader = loadShader(GLES20.GL_FRAGMENT_SHADER, Triangle.fragmentShaderCode);
+        triangleVertexShader = loadShader(GLES20.GL_VERTEX_SHADER, Triangle.vertexShaderCode);
+        mTriangle = new Triangle(triangleVertexShader, triangleFragementShader);
+
+
+        Vuforia.onSurfaceCreated();
     }
 
     public void render(Display display){
-        GL20 gl = Gdx.gl;
-
-        gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT); GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        if (Renderer.getInstance().getVideoBackgroundConfig().getReflection() == VIDEO_BACKGROUND_REFLECTION.VIDEO_BACKGROUND_REFLECTION_ON)
+            GLES20.glFrontFace(GLES20.GL_CW);  // Front camera
+        else
+            GLES20.glFrontFace(GLES20.GL_CCW);
 
         TrackableResult[] results = null;
 
         if (vuforiaRenderer.mIsActive) {
-            //render camera background and find targets
-            results = vuforiaRenderer.processFrame();
-        }
-        ViewList viewList = vuforiaRenderer.mRenderingPrimitives.getRenderingViews();
-
-        if(viewList != null && viewList.getNumViews() > 0) {
-            Matrix34F projMatrix = vuforiaRenderer.mRenderingPrimitives.getProjectionMatrix(0,
-                    COORDINATE_SYSTEM_TYPE.COORDINATE_SYSTEM_CAMERA);
-
-            float rawProjectionMatrixGL[] = Tool.convertPerspectiveProjection2GLMatrix(
-                    projMatrix,
-                    0.01f,
-                    5f)
-                    .getData();
-
-            float eyeAdjustmentGL[] = Tool.convert2GLMatrix(vuforiaRenderer.mRenderingPrimitives
-                    .getEyeDisplayAdjustmentMatrix(0)).getData();
-
-            float projectionMatrix[] = new float[16];
-            Matrix.multiplyMM(projectionMatrix, 0, rawProjectionMatrixGL, 0, eyeAdjustmentGL, 0);
-            if (results != null) {
-                renderFrame(results, projectionMatrix);
+                //render camera background and find targets
+                results = vuforiaRenderer.processFrame(false);
             }
+            ViewList viewList = vuforiaRenderer.mRenderingPrimitives.getRenderingViews();
+
+            if(viewList != null && viewList.getNumViews() > 0) {
+                Vec4I viewport;
+                // Get the viewport for that specific view
+                viewport = vuforiaRenderer.mRenderingPrimitives.getViewport(0);
+
+                Matrix34F projMatrix = vuforiaRenderer.mRenderingPrimitives.getProjectionMatrix(0,
+                        COORDINATE_SYSTEM_TYPE.COORDINATE_SYSTEM_CAMERA);
+
+                float rawProjectionMatrixGL[] = Tool.convertPerspectiveProjection2GLMatrix(
+                        projMatrix,
+                        0.01f,
+                        5f)
+                        .getData();
+
+                float eyeAdjustmentGL[] = Tool.convert2GLMatrix(vuforiaRenderer.mRenderingPrimitives
+                        .getEyeDisplayAdjustmentMatrix(0)).getData();
+
+//                float projectionMatrix[] = new float[16];
+//                Matrix.multiplyMM(projectionMatrix, 0, rawProjectionMatrixGL, 0, eyeAdjustmentGL, 0);
+                if (results != null) {
+                    // todo sprobowac wywalic hardcode projectionMatrix
+                    float projectionMatrix[] = {0f, -1.5507222f, 0f, 0f, -2.7614818f, 0f, 0f, 0f, 0.024541665f, 0.0008889092f, 1.004008f,
+                    1f, 0f, 0f, -0.02004008f, 0f};
+                    renderFrame(results, projectionMatrix);
+                }
+        }
+
+        if (vuforiaRenderer.mIsActive) {
+            //render camera background and find targets
+           vuforiaRenderer.endRenderer();
         }
     }
 
     public void renderFrame(TrackableResult[] results, float[] projectionMatrix){
 
+        Log.d("VideoPlaybackRenderer", "****** results size: " + results.length + " *******");
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+
+        // We must detect if background reflection is active and adjust the
+        // culling direction.
+        // If the reflection is active, this means the post matrix has been
+        // reflected as well,
+        // therefore standard counter clockwise face culling will result in
+        // "inside out" models.
+        GLES20.glEnable(GLES20.GL_CULL_FACE);
+        GLES20.glCullFace(GLES20.GL_BACK);
         float temp[] = { 0.0f, 0.0f, 0.0f };
 
         if(tappingProjectionMatrix == null)
@@ -324,19 +371,23 @@ public class VideoPlaybackRenderer {
                 modelViewMatrix.put(currentTarget, Tool.convertPose2GLMatrix(result.getPose()));
 
                 isTracking.put(currentTarget, Boolean.TRUE);
-
                 targetPositiveDimensions.put(currentTarget, imageTarget.getSize());
 
-                temp[0] = targetPositiveDimensions.get(currentTarget).getData()[0] / 2.0f;
-                temp[1] = targetPositiveDimensions.get(currentTarget).getData()[1] / 2.0f;
+                temp[0] = targetPositiveDimensions.get(currentTarget).getData()[0] / 2000.0f;
+                temp[1] = targetPositiveDimensions.get(currentTarget).getData()[1] / 2000.0f;
+                targetPositiveDimensions.get(currentTarget).setData(temp);
 
                 if ((currentStatus.get(currentTarget) == VideoPlayerHelper.MEDIA_STATE.READY)
                         || (currentStatus.get(currentTarget) == VideoPlayerHelper.MEDIA_STATE.REACHED_END)
                         || (currentStatus.get(currentTarget) == VideoPlayerHelper.MEDIA_STATE.NOT_READY)
                         || (currentStatus.get(currentTarget) == VideoPlayerHelper.MEDIA_STATE.ERROR)) {
 
+
                     float[] modelViewMatrixKeyframe = Tool.convertPose2GLMatrix(
                             result.getPose()).getData();
+                    modelViewMatrixKeyframe[12] =  modelViewMatrixKeyframe[12]/1000;
+                    modelViewMatrixKeyframe[13] =  modelViewMatrixKeyframe[13]/1000;
+                    modelViewMatrixKeyframe[14] =  modelViewMatrixKeyframe[14]/1000;
                     float[] modelViewProjectionKeyframe = new float[16];
 
                     float ratio = 1.0f;
@@ -350,9 +401,9 @@ public class VideoPlaybackRenderer {
                     Matrix.scaleM(modelViewMatrixKeyframe, 0, targetPositiveDimensions.get(currentTarget).getData()[0],
                             targetPositiveDimensions.get(currentTarget).getData()[0] * ratio,
                             targetPositiveDimensions.get(currentTarget).getData()[0]);
-                    Matrix.multiplyMM(modelViewMatrixKeyframe, 0, projectionMatrix, 0,
-                            modelViewMatrixKeyframe, 0);
-
+                    Matrix.multiplyMM(modelViewProjectionKeyframe, 0,
+                            projectionMatrix, 0, modelViewMatrixKeyframe, 0);
+                    //mTriangle.draw( modelViewProjectionKeyframe);
                     GLES20.glUseProgram(keyframeShaderID);
 
                     // Prepare for rendering the keyframe
@@ -367,6 +418,7 @@ public class VideoPlaybackRenderer {
                     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
                     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
                             mTextures.get(DEFAULT_TEXTURE).mTextureID[0]);
+
                     GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
                             modelViewProjectionKeyframe, 0);
                     GLES20.glUniform1i(keyframeTexSampler2DHandle, 0);
@@ -378,11 +430,15 @@ public class VideoPlaybackRenderer {
                     GLES20.glDisableVertexAttribArray(keyframeTexCoordHandle);
 
                     GLES20.glUseProgram(0);
+
                 } else
                 //wyswietlenie obrazu podczas odtwarzania lub pauzy
                 {
                     float[] modelViewMatrixVideo = Tool.convertPose2GLMatrix(
                             result.getPose()).getData();
+                   modelViewMatrixVideo[12] =  modelViewMatrixVideo[12]/1000;
+                   modelViewMatrixVideo[13] =  modelViewMatrixVideo[13]/1000;
+                   modelViewMatrixVideo[14] =  modelViewMatrixVideo[14]/1000;
                     float[] modelViewProjectionVideo = new float[16];
 
                     Matrix.scaleM(modelViewMatrixVideo, 0, targetPositiveDimensions.get(currentTarget).getData()[0],
@@ -429,6 +485,9 @@ public class VideoPlaybackRenderer {
                         || (currentStatus.get(currentTarget) == VideoPlayerHelper.MEDIA_STATE.ERROR)) {
                     float[] modelViewMatrixButton = Tool.convertPose2GLMatrix(
                             result.getPose()).getData();
+                    modelViewMatrixButton[12] =  modelViewMatrixButton[12]/1000;
+                    modelViewMatrixButton[13] =  modelViewMatrixButton[13]/1000;
+                    modelViewMatrixButton[14] =  modelViewMatrixButton[14]/1000;
                     float[] modelViewProjectionButton = new float[16];
 
                     GLES20.glDepthFunc(GLES20.GL_LEQUAL);
@@ -745,7 +804,7 @@ public class VideoPlaybackRenderer {
 
     private void loadVideo(String markerName) {
         if (currentMarkerVideo == null || !markerName.equals(currentMarkerVideo)){
-            if(mVideoPlayerHelper.get(markerName).setupSurfaceTexture(videoPlaybackTextureID[videoPlaybackTextureIDMap.get(markerName)])){
+            if(!mVideoPlayerHelper.get(markerName).setupSurfaceTexture(videoPlaybackTextureID[videoPlaybackTextureIDMap.get(markerName)])){
                 mCanRequestType.put(markerName, VideoPlayerHelper.MEDIA_TYPE.FULLSCREEN);
             } else {
                 mCanRequestType.put(markerName, VideoPlayerHelper.MEDIA_TYPE.ON_TEXTURE_FULLSCREEN);
@@ -770,6 +829,20 @@ public class VideoPlaybackRenderer {
                 mActivity.getAssets()));
         mTextures.put(BUTTON_STOP, Texture.loadTextureFromApk("VideoPlayback/error.png",
                 mActivity.getAssets()));
+    }
+
+    // todo testowe rysowanie
+    public int loadShader(int type, String shaderCode){
+
+        // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
+        // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
+        int shader = GLES20.glCreateShader(type);
+
+        // add the source code to the shader and compile it
+        GLES20.glShaderSource(shader, shaderCode);
+        GLES20.glCompileShader(shader);
+
+        return shader;
     }
 
 }

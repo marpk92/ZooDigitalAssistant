@@ -170,7 +170,6 @@ public class Renderer {
             rot.setData(rotated);
             Matrix44F inverse = SampleMath.Matrix44FInverse(rot);
             Matrix44F transp = SampleMath.Matrix44FTranspose(inverse);
-
             float[] data = transp.getData();
             camera.position.set(data[12], data[13], data[14]);
             camera.up.set(data[4], data[5], data[6]);
