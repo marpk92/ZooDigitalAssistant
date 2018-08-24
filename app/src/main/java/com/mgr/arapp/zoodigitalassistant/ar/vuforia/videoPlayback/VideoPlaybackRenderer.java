@@ -445,7 +445,8 @@ public class VideoPlaybackRenderer {
                             targetPositiveDimensions.get(currentTarget).getData()[0]
                                     * videoQuadAspectRatio.get(currentTarget),
                             targetPositiveDimensions.get(currentTarget).getData()[0]);
-
+                    Matrix.multiplyMM(modelViewProjectionVideo, 0,
+                            projectionMatrix, 0, modelViewMatrixVideo, 0);
                     GLES20.glUseProgram(videoPlaybackShaderID);
 
                     // Prepare for rendering the keyframe

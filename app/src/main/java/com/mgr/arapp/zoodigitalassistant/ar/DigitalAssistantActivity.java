@@ -109,8 +109,8 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
                 for (Animal animal : mEngine.animalModels)
                 {
                     // Verify that the tap happened inside the target
-                    if (mEngine.videoPlaybackRenderer!= null && mEngine.videoPlaybackRenderer.isTapOnScreenInsideTarget(animal.marker, e.getX(),
-                            e.getY()))
+                    // todo dorobic weryfikacje czy klikniecie bylo w przestrzen video
+                    if (mEngine.videoPlaybackRenderer!= null)
                     {
                         VideoPlayerHelper mVideoPlayerHelper = mEngine.videoPlaybackRenderer.mVideoPlayerHelper.get(animal.marker);
                         // Check if it is playable on texture
@@ -183,7 +183,14 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
 
         mEngine = new Engine(mRenderer, this);
         View glView = initializeForView(mEngine);
-
+        glView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View arg0, MotionEvent arg1) {
+                //gesture detector to detect swipe.
+                mGestureDetector.onTouchEvent(arg1);
+                return true;//always return true to consume event
+            }
+        });
         container.addView(glView);
 
     }
@@ -201,6 +208,17 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
                 }
             }
         }
+    }
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+        boolean result = false;
+
+        // Process the Gestures
+        if (!result)
+            mGestureDetector.onTouchEvent(event);
+
+        return result;
     }
 
     @Override
