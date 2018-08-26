@@ -27,7 +27,7 @@ public class Engine extends Game {
     public VideoPlaybackRenderer videoPlaybackRenderer;
     private Activity mActivity;
     public List<Animal> animalModels;
-
+    private Display mDisplay;
 
     public Engine(VuforiaRenderer vuforiaRenderer, Activity activity) {
         this.vuforiaRenderer = vuforiaRenderer;
@@ -46,12 +46,16 @@ public class Engine extends Game {
         }
     }
 
+    public void setRenderMode(boolean renderVideo){
+        mDisplay.setRenderVideo(renderVideo);
+    }
+
     @Override
     public void create () {
         this.loadAnimals(mActivity);
 
         videoPlaybackRenderer = new VideoPlaybackRenderer(animalModels,  vuforiaRenderer, mActivity);
-        Display mDisplay = new Display(vuforiaRenderer, mActivity, animalModels, videoPlaybackRenderer);
+        mDisplay = new Display(vuforiaRenderer, mActivity, animalModels, videoPlaybackRenderer);
         setScreen(mDisplay);
         vuforiaRenderer.initRendering(mActivity);
         vuforiaRenderer.updateRenderingPrimitives();

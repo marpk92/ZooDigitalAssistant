@@ -11,6 +11,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -54,7 +55,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
     private DataSet posterDataSet;
     private Engine mEngine;
     private boolean mPlayFullscreenVideo = false;
-
+    private boolean renderVideo = false;
     VuforiaRenderer mRenderer;
 
     Map<String, Texture> mTextures  = new HashMap<>();
@@ -85,6 +86,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
         mGestureDetector = new GestureDetector(getApplicationContext(),
                 mSimpleListener);
 
+
         mGestureDetector.setOnDoubleTapListener(new GestureDetector.OnDoubleTapListener()
         {
             public boolean onDoubleTap(MotionEvent e)
@@ -110,7 +112,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
                 {
                     // Verify that the tap happened inside the target
                     // todo dorobic weryfikacje czy klikniecie bylo w przestrzen video
-                    if (mEngine.videoPlaybackRenderer!= null)
+                    if (mEngine.videoPlaybackRenderer!= null && renderVideo)
                     {
                         VideoPlayerHelper mVideoPlayerHelper = mEngine.videoPlaybackRenderer.mVideoPlayerHelper.get(animal.marker);
                         // Check if it is playable on texture
@@ -192,7 +194,22 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
             }
         });
         container.addView(glView);
+        final Button changeRenderContent = findViewById(R.id.change_render_content);
+        changeRenderContent.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                renderVideo = !renderVideo;
+                if(!renderVideo){
+                    for (Animal animal : mEngine.animalModels) {
+                        pauseAll(animal.marker);
+                    }
+                    changeRenderContent.setText("Video");
+                } else {
+                    changeRenderContent.setText("Model");
 
+                }
+                mEngine.setRenderMode(renderVideo);
+            }
+        });
     }
 
     private void pauseAll(String except)

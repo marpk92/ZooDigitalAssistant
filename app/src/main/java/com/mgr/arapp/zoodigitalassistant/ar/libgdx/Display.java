@@ -34,6 +34,7 @@ public class Display implements Screen {
     private String name;
     public List<Animal> animalModels;
     public VideoPlaybackRenderer videoPlaybackRenderer;
+    private boolean renderVideo = false;
 
     public Display(VuforiaRenderer vuforiaRenderer, Activity activity, List<Animal> animalModels, VideoPlaybackRenderer videoRenderer) {
         videoPlaybackRenderer = videoRenderer;
@@ -61,14 +62,21 @@ public class Display implements Screen {
 
     @Override
     public void render(float delta) {
-//        if (loading && name != null && assets.update()) {
-//            Log.d("Diplay", "*************NAME: " + name + " *****************");
-//            model = assets.get(name, Model.class);
-//            modelInstance = new ModelInstance(model);
-//            loading = false;
-//        }
-//        mRenderer.render(this, delta);
-        videoPlaybackRenderer.onDrawFrame(this);
+        if (renderVideo){
+            videoPlaybackRenderer.onDrawFrame(this);
+        } else {
+            if (loading && name != null && assets.update()) {
+                Log.d("Diplay", "*************NAME: " + name + " *****************");
+                model = assets.get(name, Model.class);
+                modelInstance = new ModelInstance(model);
+                loading = false;
+            }
+            mRenderer.render(this, delta);
+        }
+    }
+
+    public void setRenderVideo(boolean renderVideo) {
+        this.renderVideo = renderVideo;
     }
 
     @Override
