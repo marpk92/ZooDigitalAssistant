@@ -55,9 +55,9 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
     private DataSet posterDataSet;
     private Engine mEngine;
     private boolean mPlayFullscreenVideo = false;
-    private boolean renderVideo = false;
+    public boolean renderVideo = false;
     VuforiaRenderer mRenderer;
-
+    Button changeRenderContent;
     Map<String, Texture> mTextures  = new HashMap<>();
 
     private GestureDetector mGestureDetector = null;
@@ -112,7 +112,8 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
                 {
                     // Verify that the tap happened inside the target
                     // todo dorobic weryfikacje czy klikniecie bylo w przestrzen video
-                    if (mEngine.videoPlaybackRenderer!= null && renderVideo)
+                    if (mEngine.videoPlaybackRenderer!= null && renderVideo &&
+                            animal.marker.equals(mEngine.videoPlaybackRenderer.currentMarkerVideo))
                     {
                         VideoPlayerHelper mVideoPlayerHelper = mEngine.videoPlaybackRenderer.mVideoPlayerHelper.get(animal.marker);
                         // Check if it is playable on texture
@@ -194,7 +195,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
             }
         });
         container.addView(glView);
-        final Button changeRenderContent = findViewById(R.id.change_render_content);
+        changeRenderContent = findViewById(R.id.change_render_content);
         changeRenderContent.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 renderVideo = !renderVideo;
@@ -226,6 +227,11 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
             }
         }
     }
+
+    public void setChangeButtonVisibility(int visible) {
+        changeRenderContent.setVisibility(visible);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
@@ -245,6 +251,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
         try {
             showProgressIndicator(true);
             session.resumeAR();
+            showProgressIndicator(false);
         } catch (VuforiaException e) {
             Toast.makeText(this, "Unable to start augmented reality.", Toast.LENGTH_LONG).show();
             Log.e(LOGTAG, e.getString());
@@ -302,7 +309,7 @@ public class DigitalAssistantActivity extends AndroidApplication implements Sess
         }
 
         // Load the data sets:
-        if (!posterDataSet.load("StonesAndChips.xml", STORAGE_TYPE.STORAGE_APPRESOURCE)) {
+        if (!posterDataSet.load("zoo_markers.xml", STORAGE_TYPE.STORAGE_APPRESOURCE)) {
             Log.d(LOGTAG, "Failed to load data set.");
             return false;
         }

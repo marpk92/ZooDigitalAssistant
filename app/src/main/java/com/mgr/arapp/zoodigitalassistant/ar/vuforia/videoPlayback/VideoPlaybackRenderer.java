@@ -8,6 +8,7 @@ import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.View;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -112,9 +113,9 @@ public class VideoPlaybackRenderer {
     private Map<String, Boolean> mLoadRequested = new HashMap<>();
 
     private List<Animal> animalList;
-    private String currentMarkerVideo;
+    public String currentMarkerVideo;
     private Matrix44F tappingProjectionMatrix = null;
-    Activity mActivity;
+    DigitalAssistantActivity mActivity;
     private VuforiaRenderer vuforiaRenderer;
 
     // todo testowy trojkat
@@ -122,7 +123,7 @@ public class VideoPlaybackRenderer {
     private int triangleFragementShader;
     private Triangle mTriangle;
 
-    public VideoPlaybackRenderer(List<Animal> animalList, VuforiaRenderer arRenderer, Activity activity) {
+    public VideoPlaybackRenderer(List<Animal> animalList, VuforiaRenderer arRenderer, DigitalAssistantActivity activity) {
         this.vuforiaRenderer = arRenderer;
         this.mActivity = activity;
         this.currentMarkerVideo = "";

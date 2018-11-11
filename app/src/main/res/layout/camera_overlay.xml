@@ -29,6 +29,6 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
-            android:text="Model 3D" />
+            android:text="Model" />
 
 </RelativeLayout>

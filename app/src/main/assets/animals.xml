@@ -1,8 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:creativeCommons="http://backend.userland.com/creativeCommonsRssModule" >
     <animal>
-        <model>jet.g3db</model>
+        <model>Wolf_small.g3db</model>
         <marker>stones</marker>
-        <videoUrl>https://dl.dropboxusercontent.com/s/glt7p3n447j9yhm/VuforiaSizzleReel_1.mp4</videoUrl>
+        <videoUrl>https://dl.dropboxusercontent.com/s/tdlkvbvz2o0pgr0/How%20Wolves%20Change%20Rivers.mp4</videoUrl>
+    </animal>
+    <animal>
+        <marker>koczkodan_blotny</marker>
+        <videoUrl>https://dl.dropboxusercontent.com/s/1eauk8izjnbz4wa/ZOO%20Wroc%C5%82aw%20-%20m%C5%82ody%20koczkodan%20g%C3%B3rski.mp4</videoUrl>
+    </animal>
+    <animal>
+        <marker>kondor_wielki</marker>
+        <videoUrl>https://dl.dropboxusercontent.com/s/tpzznw0d0r29qnl/%5BHD%5D%20Kondor%20wielki%20w%20zoo%20w%20Warszawie%20-%20czerwone%20oczy%20wygrzewaj%C4%85cy%20si%C4%99%20na%20s%C5%82o%C5%84cu.mp4</videoUrl>
+    </animal>
+    <animal>
+        <marker>lemur_katta</marker>
+        <videoUrl>https://dl.dropboxusercontent.com/s/kzdj9qbrj2xu258/Lemury%20katta%20Wyspa%20Lemur%C3%B3w%20%20Ring-Tailed%20Lemurs%20Island%20Opole%20Zoo%20POLAND.mp4</videoUrl>
+    </animal>
+    <animal>
+        <marker>sajmiri</marker>
+        <videoUrl>https://dl.dropboxusercontent.com/s/dhe8qxccnagx3pl/Ma%C5%82pka%20sajmiri%20wcina%20papryk%C4%99%20HD.mp4</videoUrl>
+    </animal>
+    <animal>
+        <marker>bizon_amerykanski</marker>
+        <videoUrl>https://dl.dropboxusercontent.com/s/aragppaakp603rl/Bison%20Battle%20%20Yellowstone%20%20BBC%20Earth.mp4</videoUrl>
+    </animal>
+    <animal>
+        <model>King_Kong_no_fur.g3db</model>
+        <marker>goryle</marker>
+        <videoUrl>https://dl.dropboxusercontent.com/s/e4lpg0hxp4bj5gt/A%20family%20of%20gorillas%20wait%20to%20cross%20the%20road%20-%20Gorilla%20Family%20%20Me%20Episode%201%20Preview%20-%20BBC%20Two.mp4</videoUrl>
     </animal>
 </feed>

@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.FPSLogger;
+import com.mgr.arapp.zoodigitalassistant.ar.DigitalAssistantActivity;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.VuforiaRenderer;
 import com.mgr.arapp.zoodigitalassistant.ar.vuforia.videoPlayback.VideoPlaybackRenderer;
 import com.mgr.arapp.zoodigitalassistant.xmlparser.Animal;
@@ -25,16 +26,16 @@ public class Engine extends Game {
     private FPSLogger fps;
     private VuforiaRenderer vuforiaRenderer;
     public VideoPlaybackRenderer videoPlaybackRenderer;
-    private Activity mActivity;
+    private DigitalAssistantActivity mActivity;
     public List<Animal> animalModels;
     private Display mDisplay;
 
-    public Engine(VuforiaRenderer vuforiaRenderer, Activity activity) {
+    public Engine(VuforiaRenderer vuforiaRenderer, DigitalAssistantActivity activity) {
         this.vuforiaRenderer = vuforiaRenderer;
         this.mActivity = activity;
     }
 
-    private void loadAnimals(Activity activity){
+    private void loadAnimals(DigitalAssistantActivity activity){
         try {
             InputStream in = activity.getAssets().open("animals.xml");
             AnimalXmlParser parser = new AnimalXmlParser();

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import com.mgr.arapp.zoodigitalassistant.ar.DigitalAssistantActivity;
 import com.vuforia.CameraCalibration;
 import com.vuforia.CameraDevice;
 import com.vuforia.Device;
@@ -40,7 +41,7 @@ public class VuforiaRenderer {
     {
         vuforiaAppSession = session;
     }
-
+    public DigitalAssistantActivity mActivity;
 
     // Called when the surface changed size.
     public void onSurfaceChanged(int width, int height)
@@ -53,10 +54,10 @@ public class VuforiaRenderer {
 
 
     // Function for initializing the renderer.
-    public void initRendering(Activity activity)
+    public void initRendering(DigitalAssistantActivity activity)
     {
         Log.d(LOGTAG, "GLRenderer.initRendering");
-
+        mActivity = activity;
         mRenderer = Renderer.getInstance();
 
         mSampleAppRenderer = new SampleAppRenderer(activity, Device.MODE.MODE_AR, false, 0.01f, 5f);

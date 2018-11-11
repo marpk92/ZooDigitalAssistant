@@ -38,7 +38,7 @@ public class Display implements Screen {
 
     public Display(VuforiaRenderer vuforiaRenderer, Activity activity, List<Animal> animalModels, VideoPlaybackRenderer videoRenderer) {
         videoPlaybackRenderer = videoRenderer;
-        mRenderer = new Renderer(vuforiaRenderer);
+        mRenderer = new Renderer(vuforiaRenderer, this);
         this.animalModels = animalModels;
         Log.d("Display", animalModels.get(0).toString());
 //        AssetManager assets = new AssetManager();

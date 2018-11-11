@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QCARConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="qcar_config.xsd">
+  <Tracking>
+    <ImageTarget name="goryle" size="250.000000 160.671770" />
+    <ImageTarget name="bizon_amerykanski" size="100.000000 62.925739" />
+    <ImageTarget name="koczkodan_blotny" size="200.000000 280.125614" />
+    <ImageTarget name="kondor_wielki" size="350.000000 204.400461" />
+    <ImageTarget name="lemur_katta" size="200.000000 270.254707" />
+    <ImageTarget name="sajmiri" size="200.000000 280.266100" />
+  </Tracking>
+</QCARConfig>

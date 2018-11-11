@@ -2,6 +2,7 @@ package com.mgr.arapp.zoodigitalassistant.ar.libgdx;
 
 import android.opengl.Matrix;
 import android.util.Log;
+import android.view.View;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
@@ -25,6 +26,7 @@ import com.vuforia.Matrix34F;
 import com.vuforia.Matrix44F;
 import com.vuforia.RenderingPrimitives;
 import com.vuforia.Tool;
+import com.vuforia.Trackable;
 import com.vuforia.TrackableResult;
 import com.vuforia.VIDEO_BACKGROUND_REFLECTION;
 import com.vuforia.ViewList;
@@ -47,9 +49,10 @@ public class Renderer {
     private String currentModelName;
     private VideoPlaybackRenderer videoPlaybackRenderer;
     public List<Animal> animalModels;
+    private Display display;
 
-    public Renderer(VuforiaRenderer arRenderer) {
-
+    public Renderer(VuforiaRenderer arRenderer, Display display) {
+        this.display = display;
         lights = new Environment();
         lights.set(new ColorAttribute(ColorAttribute.AmbientLight, Color.WHITE));
 
@@ -101,29 +104,6 @@ public class Renderer {
         gl.glDisable(GL20.GL_BLEND);
     }
 
-    private void renderVideo(GL20 gl, Display display, TrackableResult[] results){
-        ViewList viewList = vuforiaRenderer.mRenderingPrimitives.getRenderingViews();
-
-        if(viewList != null && viewList.getNumViews() > 0) {
-            Matrix34F projMatrix = vuforiaRenderer.mRenderingPrimitives.getProjectionMatrix(0,
-                    COORDINATE_SYSTEM_TYPE.COORDINATE_SYSTEM_CAMERA);
-
-            float rawProjectionMatrixGL[] = Tool.convertPerspectiveProjection2GLMatrix(
-                    projMatrix,
-                    0.01f,
-                    5f)
-                    .getData();
-
-            float eyeAdjustmentGL[] = Tool.convert2GLMatrix(vuforiaRenderer.mRenderingPrimitives
-                    .getEyeDisplayAdjustmentMatrix(0)).getData();
-
-            float projectionMatrix[] = new float[16];
-            Matrix.multiplyMM(projectionMatrix, 0, rawProjectionMatrixGL, 0, eyeAdjustmentGL, 0);
-
-            videoPlaybackRenderer.renderFrame(results, projectionMatrix);
-        }
-
-    }
 
     private void setProjectionAndCamera(final Display contentProvider, TrackableResult[] trackables, float filedOfView) {
 
@@ -135,14 +115,22 @@ public class Renderer {
             trackableName = trackable.getTrackable().getName();
             for (Animal animal : contentProvider.animalModels){
                 if (animal.marker.equals(trackableName)){
-                    modelName = animal.model;
+                    if(animal.model == null){
+                        display.setRenderVideo(true);
+                        vuforiaRenderer.mActivity.renderVideo = true;
+                    } else {
+                        modelName = animal.model;
+                    }
+                    break;
                 }
             }
         }
+
         if (trackables != null && trackables.length > 0 && model != null && currentModelName != null && currentModelName.equals(modelName)) {
             //transform all content
 
             TrackableResult trackable = trackables[0];
+
             Log.d(LOG, "*********** name track: " + trackable.getTrackable().getName());
             Matrix44F modelViewMatrix = Tool.convertPose2GLMatrix(trackable.getPose());
             float[] raw = modelViewMatrix.getData();
@@ -176,8 +164,7 @@ public class Renderer {
             camera.direction.set(data[8], data[9], data[10]);
             //update filed of view
             camera.fieldOfView = filedOfView;
-        } else if (trackables != null && trackables.length > 0 && model == null){
-
+        } else if (trackables != null && trackables.length > 0 && model == null && !modelName.equals("")){
             if(!contentProvider.isLoading()) {
                 contentProvider.loadModel(modelName);
                 currentModelName = modelName;
@@ -191,7 +178,7 @@ public class Renderer {
         if (model != null) {
             model.transform.set(new Matrix4());
             //the model is rotated
-            model.transform.rotate(1.0F, 0.0F, 0.0F, 90.0F);
+           model.transform.rotate(1.0F, 0.0F, 0.0F, 90.0F);
             model.transform.rotate(0.0F, 1.0F, 0.0F, 90.0F);
             model.transform.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
             camera.update();
